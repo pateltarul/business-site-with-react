@@ -20,23 +20,38 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Store in localStorage for demo purposes
-    const submissions = JSON.parse(localStorage.getItem('contactSubmissions') || '[]');
-    submissions.push({
-      ...formData,
-      timestamp: new Date().toISOString()
-    });
-    localStorage.setItem('contactSubmissions', JSON.stringify(submissions));
+    // Use current host for API calls (works on network)
+    const apiUrl = `${window.location.protocol}//${window.location.hostname}:3001/api/messages`;
+    
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    toast({
-      title: "Message Sent Successfully! 🎉",
-      description: "Thank you for contacting us. We'll get back to you within 24 hours.",
-    });
-
-    setFormData({ name: '', email: '', phone: '', message: '' });
+      if (response.ok) {
+        toast({
+          title: "Message Sent Successfully! 🎉",
+          description: "Thank you for contacting us. We'll get back to you within 24 hours.",
+        });
+        setFormData({ name: '', email: '', phone: '', message: '' });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error Sending Message",
+        description: "There was an error sending your message. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const contactInfo = [
